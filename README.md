@@ -1,6 +1,25 @@
-# Ai Monitor by AmL
+<p align="center">
+  <img src="AiMonitor/Assets.xcassets/AppIcon.appiconset/icon_128x128.png" width="80" alt="Ai Monitor icon">
+</p>
 
-A real-time system and AI-services monitor for Apple Silicon Macs — with a companion Windows client that connects remotely over your local network.
+<h1 align="center">Ai Monitor &nbsp;<sup><sub>by AmL</sub></sup></h1>
+
+<p align="center">
+  A real-time system and AI-services monitor for Apple Silicon Macs —<br>
+  with a companion Windows client that connects remotely over your local network.
+</p>
+
+<p align="center">
+  <a href="https://github.com/aml-one/aimonitor/raw/main/AiMonitor.dmg">
+    <img src="https://img.shields.io/badge/Download-macOS%20DMG-blue?logo=apple&logoColor=white&style=for-the-badge" alt="Download macOS DMG">
+  </a>
+  &nbsp;
+  <a href="https://github.com/aml-one/aimonitor/raw/main/WindowsClient/publish/AiMonitorClient.exe">
+    <img src="https://img.shields.io/badge/Download-Windows%20Client%20x64-.NET%2010-0078d7?logo=windows&logoColor=white&style=for-the-badge" alt="Download Windows Client">
+  </a>
+</p>
+
+> **Windows client note:** Requires [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) to be installed on the Windows machine.
 
 ---
 

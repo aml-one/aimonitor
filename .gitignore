@@ -13,7 +13,7 @@ xcuserdata/
 # ── Windows / .NET ───────────────────────────────────────────────────────
 WindowsClient/bin/
 WindowsClient/obj/
-WindowsClient/publish/
+WindowsClient/publish/*-sa.exe
 WindowsClient/.vs/
 *.user
 
