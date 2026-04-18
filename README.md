@@ -15,7 +15,7 @@
   </a>
   &nbsp;
   <a href="https://github.com/aml-one/aimonitor/raw/main/WindowsClient/publish/AiMonitorClient.exe">
-    <img src="https://img.shields.io/badge/Download-Windows%20Client%20x64-.NET%2010-0078d7?logo=windows&logoColor=white&style=for-the-badge" alt="Download Windows Client">
+    <img src="https://img.shields.io/badge/Download-Windows_Client_x64_(requires_.NET_10)-0078d7?logo=windows&logoColor=white&style=for-the-badge" alt="Download Windows Client">
   </a>
 </p>
 
