@@ -16,7 +16,6 @@
 		BF000000000000000000AA07 /* LiveGraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF000000000000000000FF07 /* LiveGraphView.swift */; };
 		BF000000000000000000AA08 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF000000000000000000FF08 /* GlassCard.swift */; };
 		BF000000000000000000AA09 /* ServiceCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF000000000000000000FF09 /* ServiceCard.swift */; };
-		BF000000000000000000AA0A /* AnimatedBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF000000000000000000FF0A /* AnimatedBackground.swift */; };
 		BF000000000000000000AA0B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BF000000000000000000FF0B /* Assets.xcassets */; };
 		BF000000000000000000AA0C /* APIServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF000000000000000000FF0E /* APIServer.swift */; };
 /* End PBXBuildFile section */
@@ -32,7 +31,6 @@
 		BF000000000000000000FF07 /* LiveGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveGraphView.swift; sourceTree = "<group>"; };
 		BF000000000000000000FF08 /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
 		BF000000000000000000FF09 /* ServiceCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceCard.swift; sourceTree = "<group>"; };
-		BF000000000000000000FF0A /* AnimatedBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedBackground.swift; sourceTree = "<group>"; };
 		BF000000000000000000FF0B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BF000000000000000000FF0C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BF000000000000000000FF0D /* AiMonitor.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AiMonitor.entitlements; sourceTree = "<group>"; };
@@ -98,7 +96,6 @@
 				BF000000000000000000FF07 /* LiveGraphView.swift */,
 				BF000000000000000000FF08 /* GlassCard.swift */,
 				BF000000000000000000FF09 /* ServiceCard.swift */,
-				BF000000000000000000FF0A /* AnimatedBackground.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -181,7 +178,6 @@
 				BF000000000000000000AA07 /* LiveGraphView.swift in Sources */,
 				BF000000000000000000AA08 /* GlassCard.swift in Sources */,
 				BF000000000000000000AA09 /* ServiceCard.swift in Sources */,
-				BF000000000000000000AA0A /* AnimatedBackground.swift in Sources */,
 				BF000000000000000000AA0C /* APIServer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -296,6 +296,8 @@ final class APIServer: ObservableObject {
               "online": \(svc.comfyOnline),
               "queue_running": \(svc.comfyQueueRunning),
               "queue_pending": \(svc.comfyQueuePending),
+              "is_generating": \(svc.comfyIsGenerating),
+              "generation_progress": \(svc.comfyGenerationProgress.rounded(dp: 3)),
               "cpu_pct": \(svc.comfyStats.cpu.rounded(dp: 2)),
               "mem_gb": \(svc.comfyStats.memGB.rounded(dp: 3)),
               "cpu_history_pct": \(comfyCPUHist)

@@ -90,15 +90,16 @@ struct OllamaCard: View {
                 // Stats row
                 HStack(spacing: 20) {
                     statItem(label: "CPU",
-                             value: String(format: "%.1f%%", svc.ollamaStats.cpu))
+                             value: svc.ollamaStats.cpu < 0.35 ? "idle" : String(format: "%.1f%%", svc.ollamaStats.cpu),
+                             valueColor: svc.ollamaStats.cpu < 0.35 ? .green : .white)
                     statItem(label: "MEM",
-                             value: String(format: "%.2f GB", svc.ollamaStats.memGB))
+                             value: svc.ollamaStats.memGB < 1.0 ? String(format: "%.0f MB", svc.ollamaStats.memGB * 1024) : String(format: "%.2f GB", svc.ollamaStats.memGB))
                     statItem(label: "MODELS",
                              value: "\(svc.ollamaModels.count)")
                 }
                 .padding(.bottom, 6)
 
-                // Models list — always reserve height so card never jumps
+                // Models list + generation-bar-height spacer (matches ComfyCard height)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
                         ForEach(svc.ollamaModels) { m in
@@ -124,15 +125,18 @@ struct OllamaCard: View {
                 .opacity(svc.ollamaOnline ? 1 : 0)
                 .padding(.bottom, 6)
 
+                Spacer()
+
                 // CPU graph
                 VStack(alignment: .leading, spacing: 4) {
                     Text("CPU USAGE")
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
                         .foregroundStyle(.white.opacity(0.3))
+                        .padding(.horizontal, 10)
                     LiveGraphView(values: svc.ollamaCPUHistory, color: accent)
                         .frame(height: 94)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
+                .padding(.horizontal, -10)
                 .padding(.bottom, 6)
 
                 // Action buttons
@@ -149,15 +153,16 @@ struct OllamaCard: View {
     }
 
     @ViewBuilder
-    private func statItem(label: String, value: String) -> some View {
+    private func statItem(label: String, value: String, valueColor: Color = .white) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
                 .font(.system(size: 9, weight: .semibold, design: .monospaced))
                 .foregroundStyle(.white.opacity(0.3))
             Text(value)
                 .font(.system(size: 16, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
+                .foregroundStyle(valueColor)
         }
+        .frame(minWidth: 64, alignment: .leading)
     }
 }
 
@@ -196,18 +201,22 @@ struct ComfyCard: View {
                 // Stats row
                 HStack(spacing: 20) {
                     statItem(label: "CPU",
-                             value: String(format: "%.1f%%", svc.comfyStats.cpu))
+                             value: svc.comfyStats.cpu < 0.35 ? "idle" : String(format: "%.1f%%", svc.comfyStats.cpu),
+                             valueColor: svc.comfyStats.cpu < 0.35 ? .green : .white)
                     statItem(label: "MEM",
-                             value: String(format: "%.2f GB", svc.comfyStats.memGB))
+                             value: svc.comfyStats.memGB < 1.0 ? String(format: "%.0f MB", svc.comfyStats.memGB * 1024) : String(format: "%.2f GB", svc.comfyStats.memGB))
                     statItem(label: "QUEUE",
                              value: "\(svc.comfyQueueRunning) / \(svc.comfyQueuePending)")
                 }
                 .padding(.bottom, 6)
 
-                // Queue indicator bars — always reserve height so card never jumps
+                // Queue indicator bars + generation progress — always reserve height so card never jumps
                 VStack(spacing: 0) {
                     queueBar(label: "Running",  count: svc.comfyQueueRunning,  color: accent)
                     queueBar(label: "Pending",  count: svc.comfyQueuePending,  color: accent.opacity(0.5))
+                    generationBar(progress: svc.comfyGenerationProgress, color: accent)
+                        .opacity(svc.comfyIsGenerating ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.4), value: svc.comfyIsGenerating)
                 }
                 .opacity(svc.comfyOnline ? 1 : 0)
 
@@ -216,10 +225,11 @@ struct ComfyCard: View {
                     Text("CPU USAGE")
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
                         .foregroundStyle(.white.opacity(0.3))
+                        .padding(.horizontal, 10)
                     LiveGraphView(values: svc.comfyCPUHistory, color: accent)
                         .frame(height: 94)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
+                .padding(.horizontal, -10)
                 .padding(.bottom, 6)
 
                 // Action buttons
@@ -240,15 +250,46 @@ struct ComfyCard: View {
     }
 
     @ViewBuilder
-    private func statItem(label: String, value: String) -> some View {
+    private func statItem(label: String, value: String, valueColor: Color = .white) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
                 .font(.system(size: 9, weight: .semibold, design: .monospaced))
                 .foregroundStyle(.white.opacity(0.3))
             Text(value)
                 .font(.system(size: 16, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
+                .foregroundStyle(valueColor)
         }
+        .frame(minWidth: 64, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private func generationBar(progress: Double, color: Color) -> some View {
+        HStack(spacing: 8) {
+            Text("Generating")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(color.opacity(0.85))
+                .frame(width: 72, alignment: .leading)
+            GeometryReader { g in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(.white.opacity(0.05)).frame(height: 6)
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [color, color.opacity(0.7)],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        )
+                        .frame(width: g.size.width * max(progress, 0.02), height: 6)
+                        .animation(.easeInOut(duration: 0.25), value: progress)
+                }
+            }
+            .frame(height: 6)
+            Text(String(format: "%.0f%%", progress * 100))
+                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .foregroundStyle(.white.opacity(0.75))
+                .frame(width: 30, alignment: .trailing)
+        }
+        .padding(.bottom, 6)
     }
 
     @ViewBuilder
@@ -257,7 +298,7 @@ struct ComfyCard: View {
             Text(label)
                 .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(.white.opacity(0.4))
-                .frame(width: 50, alignment: .leading)
+                .frame(width: 72, alignment: .leading)
             GeometryReader { g in
                 ZStack(alignment: .leading) {
                     Capsule().fill(.white.opacity(0.05)).frame(height: 6)
@@ -271,7 +312,7 @@ struct ComfyCard: View {
             Text("\(count)")
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 .foregroundStyle(.white.opacity(0.6))
-                .frame(width: 20, alignment: .trailing)
+                .frame(width: 30, alignment: .trailing)
         }
         .padding(.bottom, 6)
     }

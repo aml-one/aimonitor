@@ -56,7 +56,7 @@ Because AI workloads often benefit from being monitored from a separate machine 
 | **Memory** | Used / total GB, usage history |
 | **GPU** | Apple Silicon GPU usage percentage, history |
 | **Ollama** | Online/offline status, CPU & RAM usage, loaded model list |
-| **ComfyUI** | Online/offline status, CPU & RAM usage, running/pending queue depth |
+| **ComfyUI** | Online/offline status, CPU & RAM usage, running/pending queue depth, generation progress (0–100%) |
 | **This App** | Ai Monitor's own CPU and RAM footprint |
 
 ### Remote Actions (from both clients)

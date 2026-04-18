@@ -23,8 +23,6 @@ class ServiceMonitor: ObservableObject {
     @Published var ollamaModels: [OllamaModel] = []
     @Published var ollamaStats = ProcessStats()
     @Published var ollamaCPUHistory:  [Double] = Array(repeating: 0, count: 60)
-    @Published var ollamaMemHistory:  [Double] = Array(repeating: 0, count: 60)
-    @Published var ollamaRequestRate: Int = 0
 
     // MARK: - ComfyUI
     @Published var comfyOnline: Bool = false
@@ -32,10 +30,18 @@ class ServiceMonitor: ObservableObject {
     @Published var comfyQueueRunning: Int = 0
     @Published var comfyStats = ProcessStats()
     @Published var comfyCPUHistory: [Double] = Array(repeating: 0, count: 60)
-    @Published var comfyMemHistory: [Double] = Array(repeating: 0, count: 60)
+    @Published var comfyIsGenerating: Bool = false
+    @Published var comfyGenerationProgress: Double = 0.0
 
     private var timer: Timer?
     private var session: URLSession
+    private var comfyWSTask: URLSessionWebSocketTask?
+    private let comfyClientId = UUID().uuidString
+
+    // Node-level progress tracking
+    private var comfyTotalNodes: Int = 0
+    private var comfyCompletedNodes: Int = 0
+    private var comfyCurrentNodeFraction: Double = 0
 
     init() {
         let cfg = URLSessionConfiguration.default
@@ -93,9 +99,7 @@ class ServiceMonitor: ObservableObject {
         comfyStats  = pyStats
 
         appendHistory(&ollamaCPUHistory, value: min(olStats.cpu / 100.0, 1))
-        appendHistory(&ollamaMemHistory, value: min(olStats.memGB / 8.0, 1))
         appendHistory(&comfyCPUHistory,  value: min(pyStats.cpu / 100.0, 1))
-        appendHistory(&comfyMemHistory,  value: min(pyStats.memGB / 8.0, 1))
     }
 
     private func appendHistory(_ arr: inout [Double], value: Double) {
@@ -135,12 +139,138 @@ class ServiceMonitor: ObservableObject {
         do {
             let (_, resp) = try await session.data(from: url)
             guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
-                comfyOnline = false; return
+                if comfyOnline { disconnectComfyWS() }
+                comfyOnline = false
+                return
             }
+            let wasOffline = !comfyOnline
             comfyOnline = true
+            if wasOffline { connectComfyWS() }
             await fetchComfyQueue()
         } catch {
+            if comfyOnline { disconnectComfyWS() }
             comfyOnline = false
+        }
+    }
+
+    // MARK: - ComfyUI WebSocket (generation progress)
+
+    private func connectComfyWS() {
+        guard let url = URL(string: "ws://127.0.0.1:8188/ws?clientId=\(comfyClientId)") else { return }
+        comfyWSTask?.cancel()
+        comfyWSTask = session.webSocketTask(with: url)
+        comfyWSTask?.resume()
+        receiveComfyWS()
+    }
+
+    private func disconnectComfyWS() {
+        comfyWSTask?.cancel()
+        comfyWSTask = nil
+        comfyIsGenerating = false
+        comfyGenerationProgress = 0
+        comfyTotalNodes = 0
+        comfyCompletedNodes = 0
+        comfyCurrentNodeFraction = 0
+    }
+
+    private func receiveComfyWS() {
+        comfyWSTask?.receive { [weak self] result in
+            guard let self else { return }
+            switch result {
+            case .success(let message):
+                Task { @MainActor [weak self] in
+                    self?.handleComfyWSMessage(message)
+                    self?.receiveComfyWS()
+                }
+            case .failure:
+                Task { @MainActor [weak self] in
+                    self?.comfyWSTask = nil
+                }
+            }
+        }
+    }
+
+    private func handleComfyWSMessage(_ message: URLSessionWebSocketTask.Message) {
+        guard case .string(let text) = message,
+              let data = text.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let type = json["type"] as? String else { return }
+
+        switch type {
+        case "execution_start":
+            comfyIsGenerating = true
+            comfyGenerationProgress = 0
+            comfyCompletedNodes = 0
+            comfyCurrentNodeFraction = 0
+            comfyTotalNodes = 0
+            // Fetch total node count for this prompt from the running queue
+            Task { [weak self] in await self?.fetchComfyRunningNodeCount() }
+
+        case "executing":
+            guard let ed = json["data"] as? [String: Any] else { break }
+            let node = ed["node"]
+            if node == nil || node is NSNull {
+                // Workflow finished
+                comfyIsGenerating = false
+                comfyGenerationProgress = 0
+                comfyCompletedNodes = 0
+                comfyCurrentNodeFraction = 0
+            } else {
+                // A new node started — count the previous one as done
+                comfyCompletedNodes += 1
+                comfyCurrentNodeFraction = 0
+                updateComfyGlobalProgress()
+            }
+
+        case "execution_cached":
+            // Cached nodes count as instantly completed
+            if let cd = json["data"] as? [String: Any],
+               let nodes = cd["nodes"] as? [Any] {
+                comfyCompletedNodes += nodes.count
+                updateComfyGlobalProgress()
+            }
+
+        case "progress":
+            if let pd = json["data"] as? [String: Any],
+               let value = (pd["value"] as? NSNumber)?.doubleValue,
+               let max   = (pd["max"]   as? NSNumber)?.doubleValue, max > 0 {
+                comfyCurrentNodeFraction = value / max
+                updateComfyGlobalProgress()
+            }
+
+        default:
+            break
+        }
+    }
+
+    private func updateComfyGlobalProgress() {
+        guard comfyTotalNodes > 0 else {
+            // Total unknown yet — fall back to per-node fraction, never go backward
+            let p = comfyCurrentNodeFraction
+            if p > comfyGenerationProgress { comfyGenerationProgress = p }
+            return
+        }
+        let total = Double(comfyTotalNodes)
+        let global = (Double(comfyCompletedNodes) + comfyCurrentNodeFraction) / total
+        // High-water mark: never go backward
+        let clamped = min(max(global, 0), 0.99)
+        if clamped > comfyGenerationProgress { comfyGenerationProgress = clamped }
+    }
+
+    private func fetchComfyRunningNodeCount() async {
+        guard let url = URL(string: "http://127.0.0.1:8188/queue") else { return }
+        guard let (data, _) = try? await session.data(from: url),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let running = json["queue_running"] as? [[Any]],
+              let first = running.first,
+              first.count >= 3,
+              let graph = first[2] as? [String: Any] else { return }
+        // The prompt graph is a dict of nodeId -> node definition
+        let count = graph.count
+        await MainActor.run { [weak self] in
+            guard let self, count > 0 else { return }
+            self.comfyTotalNodes = count
+            self.updateComfyGlobalProgress()
         }
     }
 
@@ -221,7 +351,7 @@ class ServiceMonitor: ObservableObject {
             req.httpMethod = "POST"
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")
             req.httpBody = try? JSONSerialization.data(withJSONObject: ["clear": true])
-            try? await session.data(for: req)
+            _ = try? await session.data(for: req)
         }
     }
 }

@@ -169,8 +169,8 @@ public partial class MainWindow : Window
         {
             var o = svc.OllamaData;
             OllamaCard.IsOnline      = o.Online;
-            OllamaCard.CpuText       = $"{o.CpuPct:F1}%";
-            OllamaCard.MemText       = $"{o.MemGb:F2} GB";
+            OllamaCard.CpuText       = o.CpuPct < 0.35 ? "idle" : $"{o.CpuPct:F0}%";
+            OllamaCard.MemText       = o.MemGb < 1.0 ? $"{o.MemGb * 1024:F0} MB" : o.MemGb % 1 == 0 ? $"{o.MemGb:F0} GB" : $"{o.MemGb:F2} GB";
             OllamaCard.ExtraText     = $"{o.Models.Length}";
             OllamaCard.HistoryValues = o.CpuHistoryPct;
             OllamaCard.ModelsVisibility = o.Online ? Visibility.Visible : Visibility.Hidden;
@@ -183,11 +183,13 @@ public partial class MainWindow : Window
         {
             var c = svc.ComfyData;
             ComfyCard.IsOnline              = c.Online;
-            ComfyCard.CpuText               = $"{c.CpuPct:F1}%";
-            ComfyCard.MemText               = $"{c.MemGb:F2} GB";
+            ComfyCard.CpuText               = c.CpuPct < 0.35 ? "idle" : $"{c.CpuPct:F0}%";
+            ComfyCard.MemText               = c.MemGb < 1.0 ? $"{c.MemGb * 1024:F0} MB" : c.MemGb % 1 == 0 ? $"{c.MemGb:F0} GB" : $"{c.MemGb:F2} GB";
             ComfyCard.ExtraText             = $"{c.QueueRunning} / {c.QueuePending}";
             ComfyCard.QueueRunning          = c.QueueRunning;
             ComfyCard.QueuePending          = c.QueuePending;
+            ComfyCard.IsGenerating          = c.IsGenerating;
+            ComfyCard.GenerationProgress    = c.GenerationProgress;
             ComfyCard.QueueSectionVisibility= c.Online ? Visibility.Visible : Visibility.Hidden;
             ComfyCard.HistoryValues         = c.CpuHistoryPct;
         }
@@ -206,6 +208,13 @@ public partial class MainWindow : Window
             ? Color.FromRgb(0x80, 0xFF, 0xAA)
             : Color.FromRgb(0xFF, 0x60, 0x60));
         ConnStatusText.Text = connected ? $"connected · {lbl}" : "unreachable";
+
+        // Grayscale all graphs while disconnected
+        CpuCard.Grayscale   = !connected;
+        MemCard.Grayscale   = !connected;
+        GpuCard.Grayscale   = !connected;
+        OllamaCard.Grayscale = !connected;
+        ComfyCard.Grayscale  = !connected;
     }
 
     private void UpdateConnectionLabel()
@@ -280,3 +289,4 @@ public partial class MainWindow : Window
         base.OnClosed(e);
     }
 }
+

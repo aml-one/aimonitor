@@ -28,8 +28,6 @@ class SystemMonitor: ObservableObject {
     // MARK: - Self (this app's own process)
     @Published var selfCPU: Double = 0          // 0‥1 fraction of one core
     @Published var selfMemoryMB: Double = 0     // resident set in MB
-    @Published var selfCPUHistory: [Double]  = Array(repeating: 0, count: 60)
-    @Published var selfMemHistory: [Double]  = Array(repeating: 0, count: 60)
 
     private var prevSelfUserNS:   UInt64 = 0
     private var prevSelfSystemNS: UInt64 = 0
@@ -104,13 +102,8 @@ class SystemMonitor: ObservableObject {
             if self.gpuHistory.count > 60 { self.gpuHistory.removeFirst() }
 
             self.selfCPU = self_.cpu
-            self.selfCPUHistory.append(self_.cpu)
-            if self.selfCPUHistory.count > 60 { self.selfCPUHistory.removeFirst() }
 
             self.selfMemoryMB = self_.memMB
-            let memFrac = self.memoryTotalGB > 0 ? (self_.memMB / 1024) / self.memoryTotalGB : 0
-            self.selfMemHistory.append(memFrac)
-            if self.selfMemHistory.count > 60 { self.selfMemHistory.removeFirst() }
         }
     }
 

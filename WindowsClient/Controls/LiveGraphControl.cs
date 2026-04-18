@@ -21,6 +21,11 @@ public sealed class LiveGraphControl : FrameworkElement
             typeof(LiveGraphControl),
             new FrameworkPropertyMetadata(Colors.White, FrameworkPropertyMetadataOptions.AffectsRender));
 
+    public static readonly DependencyProperty GrayscaleProperty =
+        DependencyProperty.Register(nameof(Grayscale), typeof(bool),
+            typeof(LiveGraphControl),
+            new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
+
     public IReadOnlyList<double>? Values
     {
         get => (IReadOnlyList<double>?)GetValue(ValuesProperty);
@@ -31,6 +36,12 @@ public sealed class LiveGraphControl : FrameworkElement
     {
         get => (Color)GetValue(AccentColorProperty);
         set => SetValue(AccentColorProperty, value);
+    }
+
+    public bool Grayscale
+    {
+        get => (bool)GetValue(GrayscaleProperty);
+        set => SetValue(GrayscaleProperty, value);
     }
 
     // ── Render ─────────────────────────────────────────────────────────────
@@ -51,7 +62,7 @@ public sealed class LiveGraphControl : FrameworkElement
         for (int i = 0; i < count; i++)
             pts[i] = new Point(i * step, h - Math.Clamp(values[i] / 100.0, 0, 1) * h);
 
-        var accent = AccentColor;
+        var accent = Grayscale ? Color.FromArgb(180, 120, 120, 120) : AccentColor;
 
         // Filled gradient area
         var fillFigure = new PathFigure
@@ -74,7 +85,7 @@ public sealed class LiveGraphControl : FrameworkElement
         fillGeom.Freeze();
         dc.DrawGeometry(fillBrush, null, fillGeom);
 
-        // Line
+        // Line with glow effect
         var lineFigure = new PathFigure { StartPoint = pts[0] };
         for (int i = 1; i < count; i++)
             lineFigure.Segments.Add(new LineSegment(pts[i], true));

@@ -88,28 +88,3 @@ struct MetricCard: View {
         .fixedSize(horizontal: false, vertical: true)
     }
 }
-
-// MARK: - Percentage ring overlay (decorative)
-
-struct PercentRing: View {
-    let progress: Double
-    let color: Color
-    var size: CGFloat = 44
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .stroke(color.opacity(0.12), lineWidth: 4)
-            Circle()
-                .trim(from: 0, to: progress)
-                .stroke(
-                    AngularGradient(colors: [color.opacity(0.6), color],
-                                    center: .center),
-                    style: StrokeStyle(lineWidth: 4, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-                .animation(.easeInOut(duration: 0.6), value: progress)
-        }
-        .frame(width: size, height: size)
-    }
-}

@@ -76,7 +76,8 @@
       <!-- ── Graph (full-bleed, bottom-rounded) ── -->
       <Border Grid.Row="1" CornerRadius="0,0,13,13" ClipToBounds="True">
         <ctrl:LiveGraphControl Values="{Binding HistoryValues, ElementName=Root}"
-                               AccentColor="{Binding AccentColor, ElementName=Root}"/>
+                               AccentColor="{Binding AccentColor, ElementName=Root}"
+                               Grayscale="{Binding Grayscale, ElementName=Root}"/>
       </Border>
     </Grid>
   </Border>

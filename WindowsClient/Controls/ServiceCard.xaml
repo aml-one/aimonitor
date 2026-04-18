@@ -101,15 +101,15 @@
         <!-- CPU -->
         <StackPanel Margin="0,0,20,0">
           <TextBlock Text="CPU" Style="{DynamicResource MonoSmall}"/>
-          <TextBlock Text="{Binding CpuText, ElementName=Root}"
-                     FontSize="16" FontWeight="Bold" FontFamily="Consolas"
+          <TextBlock x:Name="CpuValueText" Text="{Binding CpuText, ElementName=Root}"
+                     FontSize="16" FontWeight="Bold" FontFamily="Consolas" MinWidth="45"
                      Foreground="{DynamicResource TextPrimary}"/>
         </StackPanel>
         <!-- MEM -->
         <StackPanel Margin="0,0,20,0">
           <TextBlock Text="MEM" Style="{DynamicResource MonoSmall}"/>
           <TextBlock Text="{Binding MemText, ElementName=Root}"
-                     FontSize="16" FontWeight="Bold" FontFamily="Consolas"
+                     FontSize="16" FontWeight="Bold" FontFamily="Consolas" MinWidth="70"
                      Foreground="{DynamicResource TextPrimary}"/>
         </StackPanel>
         <!-- Extra (MODELS or QUEUE) -->
@@ -117,7 +117,7 @@
           <TextBlock Text="{Binding ExtraLabel, ElementName=Root}"
                      Style="{DynamicResource MonoSmall}"/>
           <TextBlock Text="{Binding ExtraText, ElementName=Root}"
-                     FontSize="16" FontWeight="Bold" FontFamily="Consolas"
+                     FontSize="16" FontWeight="Bold" FontFamily="Consolas" MinWidth="40"
                      Foreground="{DynamicResource TextPrimary}"/>
         </StackPanel>
       </StackPanel>
@@ -157,7 +157,7 @@
         <!-- Running -->
         <Grid Margin="0,0,0,6">
           <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="50"/>
+            <ColumnDefinition Width="60"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="22"/>
           </Grid.ColumnDefinitions>
@@ -173,9 +173,9 @@
                      HorizontalAlignment="Right" VerticalAlignment="Center"/>
         </Grid>
         <!-- Pending -->
-        <Grid>
+        <Grid Margin="0,0,0,6">
           <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="50"/>
+            <ColumnDefinition Width="60"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="22"/>
           </Grid.ColumnDefinitions>
@@ -190,6 +190,30 @@
                      Foreground="{DynamicResource TextSubtle}"
                      HorizontalAlignment="Right" VerticalAlignment="Center"/>
         </Grid>
+        <!-- Generating (visible only while a workflow is executing) -->
+        <Grid Visibility="{Binding GeneratingBarVisibility, ElementName=Root}">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="60"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="32"/>
+          </Grid.ColumnDefinitions>
+          <TextBlock Grid.Column="0" Text="Generating" FontSize="10"
+                     Foreground="{DynamicResource TextSubtle}" VerticalAlignment="Center"/>
+          <ProgressBar Grid.Column="1" Style="{DynamicResource QueueBar}"
+                       Maximum="1" Value="{Binding GenerationProgress, ElementName=Root}"
+                       Foreground="{Binding AccentBrush, ElementName=Root}"
+                       Opacity="0.85" Margin="8,0"/>
+          <TextBlock Grid.Column="2"
+                     FontFamily="Consolas" FontSize="10" FontWeight="SemiBold"
+                     Foreground="{DynamicResource TextSecondary}"
+                     HorizontalAlignment="Right" VerticalAlignment="Center">
+            <TextBlock.Text>
+              <MultiBinding StringFormat="{}{0:P0}">
+                <Binding Path="GenerationProgress" ElementName="Root"/>
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+        </Grid>
       </StackPanel>
 
       <!-- CPU USAGE label — matches mac spacing:4 before graph -->
@@ -198,7 +222,8 @@
       <!-- Graph — inside body with 8px corners, matches mac clipShape(cornerRadius:8) -->
       <Border CornerRadius="8" ClipToBounds="True" Height="94" Margin="0,0,0,6">
         <ctrl:LiveGraphControl Values="{Binding HistoryValues, ElementName=Root}"
-                               AccentColor="{Binding AccentColor, ElementName=Root}"/>
+                               AccentColor="{Binding AccentColor, ElementName=Root}"
+                               Grayscale="{Binding Grayscale, ElementName=Root}"/>
       </Border>
 
       <!-- Action buttons -->
@@ -222,3 +247,6 @@
   </Border>
 
 </UserControl>
+
+
+

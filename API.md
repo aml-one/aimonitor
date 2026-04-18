@@ -161,6 +161,8 @@ Returns both the `system` and `services` objects in one call. Ideal for dashboar
     "online": false,
     "queue_running": 0,
     "queue_pending": 3,
+    "is_generating": true,
+    "generation_progress": 0.42,
     "cpu_pct": 0.0,
     "mem_gb": 0.0,
     "cpu_history_pct": [0.0, 0.0, ...]
@@ -182,6 +184,8 @@ Returns both the `system` and `services` objects in one call. Ideal for dashboar
 | `comfyui.online` | `boolean` | `true` if `localhost:8188` is responding |
 | `comfyui.queue_running` | `integer` | Number of jobs actively generating |
 | `comfyui.queue_pending` | `integer` | Number of jobs waiting in queue |
+| `comfyui.is_generating` | `boolean` | `true` while a workflow is actively executing |
+| `comfyui.generation_progress` | `number` | End-to-end generation progress (0.0–1.0); `0` when idle |
 | `comfyui.cpu_pct` | `number` | ComfyUI Python process CPU % |
 | `comfyui.mem_gb` | `number` | ComfyUI process resident memory in GB |
 | `comfyui.cpu_history_pct` | `number[]` | Last 60 samples |

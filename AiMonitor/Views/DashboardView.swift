@@ -44,6 +44,7 @@ struct DashboardView: View {
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(.white.opacity(0.35))
                         .offset(y: 5)
+                        .padding(.leading, -9)
                 }
                 Text("Apple Silicon  ·  Live  ·  \(refreshDateString())")
                     .font(.system(size: 10, weight: .regular, design: .monospaced))
@@ -82,13 +83,14 @@ struct DashboardView: View {
     // MARK: - API badge
 
     private var apiBadge: some View {
-        HStack(spacing: 6) {
+        HStack(alignment: .top, spacing: 6) {
             LiveDot(color: api.isRunning ? Color(red: 0.55, green: 0.75, blue: 1.0) : .red.opacity(0.7))
+                .padding(.top, 1)
             VStack(alignment: .leading, spacing: 1) {
                 Text(api.isRunning ? "API  ·  \(String(api.serverPort))" : "API  ·  OFF")
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
                     .foregroundStyle(api.isRunning ? Color(red: 0.55, green: 0.75, blue: 1.0) : .red.opacity(0.7))
-                Text(api.isRunning ? "\(api.requestCount) req" : (api.lastError ?? "stopped"))
+                Text(api.isRunning ? "\(formatRequestCount(api.requestCount)) req" : (api.lastError ?? "stopped"))
                     .font(.system(size: 8, weight: .regular, design: .monospaced))
                     .foregroundStyle(.white.opacity(0.35))
                     .lineLimit(1)
@@ -125,7 +127,7 @@ struct DashboardView: View {
                 MetricCard(
                     title: "CPU Usage",
                     icon: "cpu",
-                    valueText: String(format: "%.1f%%", sys.cpuUsage * 100),
+                    valueText: String(format: "%.0f%%", sys.cpuUsage * 100),
                     subtitle: "\(sys.cpuCoreCount) logical cores",
                     history: sys.cpuHistory,
                     accent: cpuColor
@@ -144,7 +146,7 @@ struct DashboardView: View {
                     title: "GPU",
                     icon: "square.3.layers.3d",
                     valueText: sys.gpuAvailable
-                        ? String(format: "%.1f%%", sys.gpuUsage * 100)
+                        ? String(format: "%.0f%%", sys.gpuUsage * 100)
                         : "—",
                     subtitle: sys.gpuAvailable ? "Apple Silicon" : "unavailable",
                     history: sys.gpuHistory,
@@ -166,9 +168,10 @@ struct DashboardView: View {
                 sectionLabel("AI SERVICES")
 
                 HStack(alignment: .top, spacing: 16) {
-                    if showOllama { OllamaCard().fixedSize(horizontal: false, vertical: true) }
+                    if showOllama { OllamaCard().frame(maxHeight: .infinity) }
                     if showComfy  { ComfyCard().fixedSize(horizontal: false, vertical: true)  }
                 }
+                .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -274,5 +277,10 @@ struct DashboardView: View {
         let f = DateFormatter()
         f.dateFormat = "HH:mm:ss"
         return f.string(from: Date())
+    }
+
+    private func formatRequestCount(_ count: Int) -> String {
+        guard count >= 100_000 else { return "\(count)" }
+        return "\(count / 1000)k"
     }
 }

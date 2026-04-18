@@ -31,6 +31,9 @@ public partial class MetricCard : UserControl, INotifyPropertyChanged
         DP<Color>(nameof(AccentColor), Colors.White,
             (d, _) => ((MetricCard)d).OnAccentChanged());
 
+    public static readonly DependencyProperty GrayscaleProperty =
+        DP<bool>(nameof(Grayscale), false);
+
     // ── Public properties ──────────────────────────────────────────────────
 
     public string                 Title         { get => (string)GetValue(TitleProperty);         set => SetValue(TitleProperty, value); }
@@ -39,6 +42,7 @@ public partial class MetricCard : UserControl, INotifyPropertyChanged
     public string                 SubtitleText  { get => (string)GetValue(SubtitleTextProperty);  set => SetValue(SubtitleTextProperty, value); }
     public IReadOnlyList<double>? HistoryValues { get => (IReadOnlyList<double>?)GetValue(HistoryValuesProperty); set => SetValue(HistoryValuesProperty, value); }
     public Color                  AccentColor   { get => (Color)GetValue(AccentColorProperty);    set => SetValue(AccentColorProperty, value); }
+    public bool                   Grayscale     { get => (bool)GetValue(GrayscaleProperty);       set => SetValue(GrayscaleProperty, value); }
 
     // Computed brushes exposed for XAML binding — backed with INPC
     private SolidColorBrush _accentBrush    = Brushes.White;

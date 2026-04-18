@@ -23,7 +23,7 @@ struct AiMonitorApp: App {
                 .onAppear { apiServer.start() }
         }
         .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 840, height: 420)
+        .defaultSize(width: 840, height: 444)
         .windowResizability(.contentSize)
         .commands {
             CommandGroup(replacing: .help) {

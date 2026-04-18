@@ -30,7 +30,8 @@ public partial class ServiceCard : UserControl, INotifyPropertyChanged
         DP<bool>(nameof(IsOnline), false,
             (d, _) => ((ServiceCard)d).OnOnlineChanged());
     public static readonly DependencyProperty CpuTextProperty =
-        DP<string>(nameof(CpuText), "0%");
+        DP<string>(nameof(CpuText), "0%",
+            (d, _) => ((ServiceCard)d).OnCpuTextChanged());
     public static readonly DependencyProperty MemTextProperty =
         DP<string>(nameof(MemText), "0 GB");
     public static readonly DependencyProperty ExtraLabelProperty =
@@ -58,6 +59,13 @@ public partial class ServiceCard : UserControl, INotifyPropertyChanged
         DP<int>(nameof(QueueRunning), 0);
     public static readonly DependencyProperty QueuePendingProperty =
         DP<int>(nameof(QueuePending), 0);
+    public static readonly DependencyProperty IsGeneratingProperty =
+        DP<bool>(nameof(IsGenerating), false,
+            (d, _) => ((ServiceCard)d).OnIsGeneratingChanged());
+    public static readonly DependencyProperty GenerationProgressProperty =
+        DP<double>(nameof(GenerationProgress), 0.0);
+    public static readonly DependencyProperty GrayscaleProperty =
+        DP<bool>(nameof(Grayscale), false);
 
     // ── Events ────────────────────────────────────────────────────────────
 
@@ -85,6 +93,9 @@ public partial class ServiceCard : UserControl, INotifyPropertyChanged
     public Visibility             QueueSectionVisibility{ get => (Visibility)GetValue(QueueSectionVisibilityProperty);   set => SetValue(QueueSectionVisibilityProperty, value); }
     public int                    QueueRunning          { get => (int)GetValue(QueueRunningProperty);                     set => SetValue(QueueRunningProperty, value); }
     public int                    QueuePending          { get => (int)GetValue(QueuePendingProperty);                     set => SetValue(QueuePendingProperty, value); }
+    public bool                   IsGenerating          { get => (bool)GetValue(IsGeneratingProperty);                    set => SetValue(IsGeneratingProperty, value); }
+    public double                 GenerationProgress    { get => (double)GetValue(GenerationProgressProperty);            set => SetValue(GenerationProgressProperty, value); }
+    public bool                   Grayscale             { get => (bool)GetValue(GrayscaleProperty);                       set => SetValue(GrayscaleProperty, value); }
 
     // Computed brushes — backed with INPC fields so bindings update
     private SolidColorBrush _accentBrush       = Brushes.White;
@@ -97,6 +108,7 @@ public partial class ServiceCard : UserControl, INotifyPropertyChanged
     private SolidColorBrush _statusBadgeBg     = Brushes.Transparent;
     private SolidColorBrush _statusBadgeBorder = Brushes.Transparent;
     private string           _statusText       = "OFFLINE";
+    private Visibility        _generatingBarVisibility = Visibility.Collapsed;
 
     public SolidColorBrush AccentBrush      { get => _accentBrush;       private set => SetProp(ref _accentBrush,       value, nameof(AccentBrush)); }
     public SolidColorBrush IconBadgeBrush   { get => _iconBadgeBrush;    private set => SetProp(ref _iconBadgeBrush,    value, nameof(IconBadgeBrush)); }
@@ -108,6 +120,7 @@ public partial class ServiceCard : UserControl, INotifyPropertyChanged
     public SolidColorBrush StatusBadgeBg    { get => _statusBadgeBg;     private set => SetProp(ref _statusBadgeBg,     value, nameof(StatusBadgeBg)); }
     public SolidColorBrush StatusBadgeBorder{ get => _statusBadgeBorder; private set => SetProp(ref _statusBadgeBorder, value, nameof(StatusBadgeBorder)); }
     public string           StatusText      { get => _statusText;        private set => SetProp(ref _statusText,        value, nameof(StatusText)); }
+    public Visibility GeneratingBarVisibility { get => _generatingBarVisibility; private set => SetProp(ref _generatingBarVisibility, value, nameof(GeneratingBarVisibility)); }
 
     public ServiceCard()
     {
@@ -122,6 +135,21 @@ public partial class ServiceCard : UserControl, INotifyPropertyChanged
     private void OnThemeChanged(object? sender, EventArgs e)
     {
         Dispatcher.InvokeAsync(() => OnOnlineChanged(), System.Windows.Threading.DispatcherPriority.Background);
+    }
+
+    private void OnIsGeneratingChanged()
+    {
+        GeneratingBarVisibility = IsGenerating ? Visibility.Visible : Visibility.Hidden;
+    }
+
+
+    private void OnCpuTextChanged()
+    {
+        if (CpuValueText != null)
+        {
+            var isIdle = CpuText == "idle";
+            CpuValueText.Foreground = isIdle ? (SolidColorBrush?)TryFindResource("OnlineBrush") : (SolidColorBrush?)TryFindResource("TextPrimary");
+        }
     }
 
     private void OnAccentChanged()
@@ -175,3 +203,7 @@ public partial class ServiceCard : UserControl, INotifyPropertyChanged
 
     private static SolidColorBrush Frozen(SolidColorBrush b) { b.Freeze(); return b; }
 }
+
+
+
+
