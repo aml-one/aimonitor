@@ -23,6 +23,25 @@
 
 ---
 
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/MacOS.png" alt="Ai Monitor – macOS" width="700"><br>
+  <em>macOS dashboard</em>
+</p>
+
+<p align="center">
+  <img src="screenshots/Windows_dark.png" alt="Ai Monitor – Windows dark theme" width="700"><br>
+  <em>Windows client – dark theme</em>
+</p>
+
+<p align="center">
+  <img src="screenshots/Windows_light.png" alt="Ai Monitor – Windows light theme" width="700"><br>
+  <em>Windows client – light theme</em>
+</p>
+
+---
+
 ## What It Does
 
 **Ai Monitor** runs as a native menu-bar application on your Mac. It continuously tracks your system resources and the health of the AI tools you have running locally — specifically **Ollama** (for large language models) and **ComfyUI** (for image generation). All of this information is displayed in a compact, always-on-top dashboard window that updates every 300 ms.
