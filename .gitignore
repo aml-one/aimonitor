@@ -1,0 +1,22 @@
+# ── macOS ────────────────────────────────────────────────────────────────
+.DS_Store
+*.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode derived data (kept outside repo in /tmp/, but just in case)
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+
+# ── Windows / .NET ───────────────────────────────────────────────────────
+WindowsClient/bin/
+WindowsClient/obj/
+WindowsClient/publish/
+WindowsClient/.vs/
+*.user
+
+# ── General ──────────────────────────────────────────────────────────────
+*.log
+*.tmp

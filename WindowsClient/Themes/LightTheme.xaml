@@ -1,0 +1,92 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- ── Window / surface colours ── -->
+  <SolidColorBrush x:Key="WindowBg"      Color="#EEEEF6"/>
+  <SolidColorBrush x:Key="CardBg"        Color="#F0FFFFFF"/>
+  <SolidColorBrush x:Key="CardBorder"    Color="#18000000"/>
+  <SolidColorBrush x:Key="SurfacePanel"  Color="#E2E2EE"/>
+  <SolidColorBrush x:Key="Separator"     Color="#18000000"/>
+
+  <!-- ── Text ── -->
+  <SolidColorBrush x:Key="TextPrimary"   Color="#FF111122"/>
+  <SolidColorBrush x:Key="TextSecondary" Color="#AA111122"/>
+  <SolidColorBrush x:Key="TextSubtle"    Color="#88111122"/>
+  <SolidColorBrush x:Key="TextMono"      Color="#66111122"/>
+
+  <!-- ── Pastel accents (same as dark) ── -->
+  <Color x:Key="CpuAccentColor"    >#3A8AE8</Color>
+  <Color x:Key="MemAccentColor"    >#8855DD</Color>
+  <Color x:Key="GpuAccentColor"    >#22BB77</Color>
+  <Color x:Key="OllamaAccentColor" >#C05515</Color>
+  <Color x:Key="ComfyAccentColor"  >#CC3377</Color>
+  <Color x:Key="SelfAccentColor"   >#BB8800</Color>
+
+  <SolidColorBrush x:Key="CpuAccent"    Color="{StaticResource CpuAccentColor}"/>
+  <SolidColorBrush x:Key="MemAccent"    Color="{StaticResource MemAccentColor}"/>
+  <SolidColorBrush x:Key="GpuAccent"    Color="{StaticResource GpuAccentColor}"/>
+  <SolidColorBrush x:Key="OllamaAccent" Color="{StaticResource OllamaAccentColor}"/>
+  <SolidColorBrush x:Key="ComfyAccent"  Color="{StaticResource ComfyAccentColor}"/>
+  <SolidColorBrush x:Key="SelfAccent"   Color="{StaticResource SelfAccentColor}"/>
+
+  <!-- ── Status ── -->
+  <SolidColorBrush x:Key="OnlineBrush"  Color="#006622"/>
+  <SolidColorBrush x:Key="OfflineBrush" Color="#CC2222"/>
+
+  <!-- ── Base styles ── -->
+  <Style TargetType="TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    <Setter Property="FontFamily" Value="Segoe UI"/>
+    <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+  </Style>
+
+  <Style x:Key="SectionLabel" TargetType="TextBlock">
+    <Setter Property="FontFamily"  Value="Consolas"/>
+    <Setter Property="FontSize"    Value="10"/>
+    <Setter Property="FontWeight"  Value="Bold"/>
+    <Setter Property="Foreground"  Value="{StaticResource TextSubtle}"/>
+    <Setter Property="Margin"      Value="0,0,0,8"/>
+  </Style>
+
+  <Style x:Key="MonoSmall" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="Consolas"/>
+    <Setter Property="FontSize"   Value="9"/>
+    <Setter Property="Foreground" Value="{StaticResource TextMono}"/>
+  </Style>
+
+  <!-- ── Effects ── -->
+  <DropShadowEffect x:Key="CardShadow" BlurRadius="10" ShadowDepth="2"
+                    Direction="270" Color="#AAAACC" Opacity="0.18"/>
+
+  <Style x:Key="ActionBtn" TargetType="Button">
+    <Setter Property="Foreground"           Value="{StaticResource TextPrimary}"/>
+    <Setter Property="Background"           Value="Transparent"/>
+    <Setter Property="BorderThickness"      Value="0"/>
+    <Setter Property="Cursor"               Value="Hand"/>
+    <Setter Property="FontFamily"           Value="Segoe UI"/>
+    <Setter Property="FontSize"             Value="10"/>
+    <Setter Property="FontWeight"           Value="SemiBold"/>
+    <Setter Property="Padding"              Value="10,5"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="Bd" CornerRadius="7"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="1" Padding="{TemplateBinding Padding}">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Bd" Property="Opacity" Value="0.75"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+              <Setter TargetName="Bd" Property="Opacity" Value="0.55"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+</ResourceDictionary>

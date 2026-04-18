@@ -1,0 +1,261 @@
+<Window x:Class="AiMonitorClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctrl="clr-namespace:AiMonitorClient.Controls"
+        Title="Ai Monitor"
+        Width="860"
+        MinWidth="840"
+        SizeToContent="Height"
+        ResizeMode="CanMinimize"
+        WindowStyle="SingleBorderWindow"
+        Background="{DynamicResource WindowBg}"
+        FontFamily="Segoe UI">
+
+    <Window.Resources>
+        <!-- Resources loaded here inherit DynamicResources from App themes -->
+    </Window.Resources>
+
+    <StackPanel Margin="14,10,14,10">
+
+        <!-- ════════════ HEADER ════════════ -->
+        <Grid Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Logo + title -->
+            <StackPanel Grid.Column="0"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                <Image Source="Assets/AppIcon.png"
+                       Width="32"
+                       Height="32"
+                       VerticalAlignment="Center"
+                       Margin="0,0,8,0"
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+                <TextBlock Text="Ai Monitor"
+                           FontSize="26"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimary}"
+                           VerticalAlignment="Center" />
+                <TextBlock Text=" by AmL"
+                           FontSize="13"
+                           Foreground="{DynamicResource TextSubtle}"
+                           VerticalAlignment="Bottom"
+                           Margin="4,0,0,5" />
+            </StackPanel>
+
+            <!-- Right controls: theme toggle + settings + connection badge + summary -->
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+
+
+
+                <!-- Connection badge -->
+                <Border x:Name="ConnBadge"
+                        CornerRadius="10"
+                        Padding="10,6"
+                        Background="{DynamicResource SurfacePanel}"
+                        BorderThickness="1"
+                        Margin="0,0,10,0"
+                        MinWidth="120"
+                        BorderBrush="{DynamicResource CardBorder}">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse x:Name="ConnDot"
+                                 Width="6"
+                                 Height="6"
+                                 Fill="#FF6060"
+                                 VerticalAlignment="Center"
+                                 Margin="0,0,6,0" />
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock x:Name="ConnHostText"
+                                       Text="localhost:9876"
+                                       FontFamily="Consolas"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextSecondary}" />
+                            <TextBlock x:Name="ConnStatusText"
+                                       Text="connecting…"
+                                       FontFamily="Consolas"
+                                       FontSize="8"
+                                       Foreground="{DynamicResource TextSubtle}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- CPU | MEM | GPU summary capsule -->
+                <Border CornerRadius="14"
+                        Padding="0,8"
+                        Background="{DynamicResource SurfacePanel}"
+                        BorderBrush="{DynamicResource CardBorder}"
+                        BorderThickness="1">
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel x:Name="SumCpu"
+                                    Margin="16,0,0,0"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="CPU"
+                                       FontFamily="Consolas"
+                                       FontSize="8"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextSubtle}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock x:Name="SumCpuVal"
+                                       Text="—"
+                                       FontFamily="Consolas"
+                                       FontSize="13"
+                                       FontWeight="Bold"
+                                       MinWidth="38"
+                                       Foreground="{DynamicResource CpuAccent}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center" />
+                        </StackPanel>
+                        <Rectangle Width="1"
+                                   Margin="14,4,14,4"
+                                   Fill="{DynamicResource Separator}" />
+                        <StackPanel x:Name="SumMem"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="MEM"
+                                       FontFamily="Consolas"
+                                       FontSize="8"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextSubtle}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock x:Name="SumMemVal"
+                                       Text="—"
+                                       FontFamily="Consolas"
+                                       FontSize="13"
+                                       FontWeight="Bold"
+                                       MinWidth="38"
+                                       Foreground="{DynamicResource MemAccent}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center" />
+                        </StackPanel>
+                        <Rectangle Width="1"
+                                   Margin="14,4,14,4"
+                                   Fill="{DynamicResource Separator}" />
+                        <StackPanel x:Name="SumGpu"
+                                    Margin="0,0,16,0"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="GPU"
+                                       FontFamily="Consolas"
+                                       FontSize="8"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextSubtle}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock x:Name="SumGpuVal"
+                                       Text="—"
+                                       FontFamily="Consolas"
+                                       FontSize="13"
+                                       FontWeight="Bold"
+                                       MinWidth="38"
+                                       Foreground="{DynamicResource GpuAccent}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- ════════════ SYSTEM RESOURCES ════════════ -->
+        <TextBlock Text="SYSTEM RESOURCES"
+                   Style="{DynamicResource SectionLabel}" />
+        <UniformGrid Rows="1"
+                     Columns="3"
+                     Margin="0,0,0,10">
+            <ctrl:MetricCard x:Name="CpuCard"
+                             Title="CPU Usage"
+                             IconLabel="CPU"
+                             AccentColor="{DynamicResource CpuAccentColor}"
+                             Margin="0,0,8,0" />
+            <ctrl:MetricCard x:Name="MemCard"
+                             Title="Memory"
+                             IconLabel="MEM"
+                             AccentColor="{DynamicResource MemAccentColor}"
+                             Margin="4,0,4,0" />
+            <ctrl:MetricCard x:Name="GpuCard"
+                             Title="GPU"
+                             IconLabel="GPU"
+                             AccentColor="{DynamicResource GpuAccentColor}"
+                             Margin="8,0,0,0" />
+        </UniformGrid>
+
+        <!-- ════════════ AI SERVICES ════════════ -->
+        <StackPanel x:Name="ServicesSection"
+                    Visibility="Collapsed"
+                    Margin="0,0,0,10">
+            <TextBlock Text="AI SERVICES"
+                       Style="{DynamicResource SectionLabel}" />
+            <UniformGrid Rows="1"
+                         Columns="2"
+                         HorizontalAlignment="Stretch">
+
+                <!-- Ollama -->
+                <ctrl:ServiceCard x:Name="OllamaCard"
+                                  ServiceType="Ollama"
+                                  ServiceName="Ollama"
+                                  ServiceUrl="localhost:11434"
+                                  IconLabel="AI"
+                                  ExtraLabel="MODELS"
+                                  Btn1Label="↺  Restart"
+                                  AccentColor="{DynamicResource OllamaAccentColor}"
+                                  Visibility="Collapsed"
+                                  Margin="0,0,10,0" />
+
+                <!-- ComfyUI -->
+                <ctrl:ServiceCard x:Name="ComfyCard"
+                                  ServiceType="ComfyUI"
+                                  ServiceName="ComfyUI"
+                                  ServiceUrl="localhost:8188"
+                                  IconLabel="IMG"
+                                  ExtraLabel="QUEUE"
+                                  Btn1Label="✕  Close"
+                                  Btn2Label="🗑  Clear Queue"
+                                  Btn2Visibility="Visible"
+                                  AccentColor="{DynamicResource ComfyAccentColor}"
+                                  Visibility="Collapsed" />
+            </UniformGrid>
+        </StackPanel>
+
+        <!-- ════════════ FOOTER ════════════ -->
+        <DockPanel LastChildFill="False">
+
+            <TextBlock x:Name="FooterText"
+                       Text="Updates every 300ms  ·  AI Monitor Client by AmL"
+                       FontFamily="Consolas"
+                       FontSize="9"
+                       Foreground="{DynamicResource TextSubtle}"
+                       Margin="0,4,0,2" />
+
+
+            <!-- Settings -->
+            <Button x:Name="SettingsBtn"
+                    Content="⚙"
+                    FontSize="12"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Foreground="{DynamicResource TextSecondary}"
+                    Cursor="Hand"
+                    ToolTip="Settings"
+                    Margin="0,0,10,0"
+                    DockPanel.Dock="Right"
+                    Click="SettingsBtn_Click" />
+            
+            <!-- Theme toggle -->
+            <Button x:Name="ThemeBtn"
+                    Content="◐"
+                    FontSize="14"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Foreground="{DynamicResource TextSecondary}"
+                    Cursor="Hand"
+                    ToolTip="Toggle dark/light mode"
+                    Margin="0,0,6,0"
+                    DockPanel.Dock="Right"
+                    Click="ThemeBtn_Click" />
+        </DockPanel>
+    </StackPanel>
+
+</Window>
