@@ -35,6 +35,7 @@ class ServiceMonitor: ObservableObject {
 
     private var timer: Timer?
     private var session: URLSession
+    private var wsSession: URLSession        // no resource timeout — keeps WS alive
     private var comfyWSTask: URLSessionWebSocketTask?
     private let comfyClientId = UUID().uuidString
 
@@ -48,6 +49,11 @@ class ServiceMonitor: ObservableObject {
         cfg.timeoutIntervalForRequest  = 2
         cfg.timeoutIntervalForResource = 2
         session = URLSession(configuration: cfg)
+
+        // Separate session for WebSocket — no resource timeout so the connection stays alive
+        let wsCfg = URLSessionConfiguration.default
+        wsCfg.timeoutIntervalForRequest = 5
+        wsSession = URLSession(configuration: wsCfg)
         detectInstalled()
         startMonitoring()
     }
@@ -158,7 +164,7 @@ class ServiceMonitor: ObservableObject {
     private func connectComfyWS() {
         guard let url = URL(string: "ws://127.0.0.1:8188/ws?clientId=\(comfyClientId)") else { return }
         comfyWSTask?.cancel()
-        comfyWSTask = session.webSocketTask(with: url)
+        comfyWSTask = wsSession.webSocketTask(with: url)
         comfyWSTask?.resume()
         receiveComfyWS()
     }
@@ -184,7 +190,13 @@ class ServiceMonitor: ObservableObject {
                 }
             case .failure:
                 Task { @MainActor [weak self] in
-                    self?.comfyWSTask = nil
+                    guard let self else { return }
+                    self.comfyWSTask = nil
+                    // Reconnect after a short delay if still online
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    if self.comfyOnline {
+                        self.connectComfyWS()
+                    }
                 }
             }
         }
@@ -280,7 +292,16 @@ class ServiceMonitor: ObservableObject {
             let (data, _) = try await session.data(from: url)
             if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                 comfyQueuePending = (json["queue_pending"] as? [[Any]])?.count ?? 0
-                comfyQueueRunning = (json["queue_running"] as? [[Any]])?.count ?? 0
+                let running = (json["queue_running"] as? [[Any]])?.count ?? 0
+                comfyQueueRunning = running
+                // If queue has running jobs but WS never fired execution_start, show generating
+                if running > 0 && !comfyIsGenerating {
+                    comfyIsGenerating = true
+                } else if running == 0 && comfyQueuePending == 0 && comfyIsGenerating {
+                    // Queue drained but WS didn't send executing(null) — clear the bar
+                    comfyIsGenerating = false
+                    comfyGenerationProgress = 0
+                }
             }
         } catch {}
     }

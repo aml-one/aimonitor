@@ -59,14 +59,14 @@ struct DashboardView: View {
 
             // System summary capsule — fixed width so numbers don't shift layout
             HStack(spacing: 0) {
-                summaryChip(label: "CPU",  value: String(format: "%.0f%%", sys.cpuUsage * 100),
+                summaryChip(label: "CPU",  value: String(format: "%.0f%%", min(sys.cpuUsage * 100, 100)),
                             color: cpuColor)
                 separatorLine()
                 summaryChip(label: "MEM",  value: String(format: "%.0f%%",
                             sys.memoryTotalGB > 0 ? sys.memoryUsedGB / sys.memoryTotalGB * 100 : 0),
                             color: memColor)
                 separatorLine()
-                summaryChip(label: "GPU",  value: sys.gpuAvailable ? String(format: "%.0f%%", sys.gpuUsage * 100) : "N/A",
+                summaryChip(label: "GPU",  value: sys.gpuAvailable ? String(format: "%.0f%%", min(sys.gpuUsage * 100, 100)) : "N/A",
                             color: gpuColor)
             }
             .padding(.horizontal, 16)
@@ -153,6 +153,11 @@ struct DashboardView: View {
                     accent: gpuColor
                 )
             }
+
+            // Per-core load — shown when toggled on
+            if showEachCore {
+                SystemCorePanel()
+            }
         }
     }
 
@@ -167,9 +172,10 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: 12) {
                 sectionLabel("AI SERVICES")
 
+                // Service cards — always shown side by side
                 HStack(alignment: .top, spacing: 16) {
                     if showOllama { OllamaCard().frame(maxHeight: .infinity) }
-                    if showComfy  { ComfyCard().fixedSize(horizontal: false, vertical: true)  }
+                    if showComfy  { ComfyCard().fixedSize(horizontal: false, vertical: true) }
                 }
                 .fixedSize(horizontal: false, vertical: true)
             }
@@ -180,6 +186,7 @@ struct DashboardView: View {
 
     private let selfAccent = Color(red: 1.0, green: 0.85, blue: 0.45)
     @AppStorage("reducedUpdates") private var reducedUpdates: Bool = false
+    @AppStorage("showEachCore")   private var showEachCore:   Bool = false
 
     private var selfSection: some View {
         HStack(spacing: 12) {
@@ -205,6 +212,14 @@ struct DashboardView: View {
                 }
             )) {
                 Text("reduced updates")
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.white.opacity(0.30))
+            }
+            .toggleStyle(.checkbox)
+            .controlSize(.mini)
+
+            Toggle(isOn: $showEachCore) {
+                Text("show each core")
                     .font(.system(size: 9, weight: .medium, design: .monospaced))
                     .foregroundStyle(.white.opacity(0.30))
             }

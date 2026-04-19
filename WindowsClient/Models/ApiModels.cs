@@ -17,9 +17,10 @@ public record SystemData(
     [property: JsonPropertyName("gpu")]    GpuData    Gpu);
 
 public record CpuData(
-    [property: JsonPropertyName("usage_pct")]    double   UsagePct,
-    [property: JsonPropertyName("core_count")]   int      CoreCount,
-    [property: JsonPropertyName("history_pct")]  double[] HistoryPct);
+    [property: JsonPropertyName("usage_pct")]          double     UsagePct,
+    [property: JsonPropertyName("core_count")]         int        CoreCount,
+    [property: JsonPropertyName("history_pct")]        double[]   HistoryPct,
+    [property: JsonPropertyName("core_histories_pct")] double[][]? CoreHistoriesPct);
 
 public record MemoryData(
     [property: JsonPropertyName("used_gb")]      double   UsedGb,

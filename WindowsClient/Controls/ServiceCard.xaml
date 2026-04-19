@@ -97,7 +97,8 @@
       </Grid>
 
       <!-- Stats row -->
-      <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+      <StackPanel Orientation="Horizontal" Margin="0,0,0,6"
+                  Visibility="{Binding StatsRowVisibility, ElementName=Root}">
         <!-- CPU -->
         <StackPanel Margin="0,0,20,0">
           <TextBlock Text="CPU" Style="{DynamicResource MonoSmall}"/>
@@ -217,7 +218,12 @@
       </StackPanel>
 
       <!-- CPU USAGE label — matches mac spacing:4 before graph -->
-      <TextBlock Text="CPU USAGE" Style="{DynamicResource MonoSmall}" Margin="0,0,0,4"/>
+      <Grid Margin="0,0,0,4">
+        <TextBlock Text="CPU USAGE" Style="{DynamicResource MonoSmall}" HorizontalAlignment="Left"/>
+        <TextBlock Text="100% = 1 core" FontFamily="Consolas" FontSize="8"
+                   Foreground="{DynamicResource TextSubtle}" Opacity="0.5"
+                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
+      </Grid>
 
       <!-- Graph — inside body with 8px corners, matches mac clipShape(cornerRadius:8) -->
       <Border CornerRadius="8" ClipToBounds="True" Height="94" Margin="0,0,0,6">
@@ -227,7 +233,8 @@
       </Border>
 
       <!-- Action buttons -->
-      <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+      <StackPanel Orientation="Horizontal" Margin="0,10,0,0"
+                  Visibility="{Binding ActionBtnsVisibility, ElementName=Root}">
         <Button x:Name="Btn1" Content="{Binding Btn1Label, ElementName=Root}"
                 Style="{DynamicResource ActionBtn}"
                 Background="{Binding ActionBtnBg, ElementName=Root}"
@@ -241,6 +248,13 @@
                 Foreground="{Binding AccentBrush, ElementName=Root}"
                 Visibility="{Binding Btn2Visibility, ElementName=Root}"
                 Click="Btn2_Click"/>
+        <TextBlock Text="{Binding CoreHintText, ElementName=Root}"
+                   FontFamily="Consolas" FontSize="9"
+                   Foreground="#CC4444" Opacity="0.7"
+                   VerticalAlignment="Center"
+                   Margin="8,0,0,0"
+                   HorizontalAlignment="Right"
+                   Visibility="{Binding CoreHintVisibility, ElementName=Root}"/>
       </StackPanel>
 
     </StackPanel>

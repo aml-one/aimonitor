@@ -24,6 +24,22 @@ public partial class SettingsWindow : Window
         if (PollBox.SelectedItem is null) PollBox.SelectedIndex = 0;
     }
 
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        App.ApplyTitleBarColor(this);
+        App.ThemeChanged += OnThemeChanged;
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e)
+        => App.ApplyTitleBarColor(this);
+
+    protected override void OnClosed(EventArgs e)
+    {
+        App.ThemeChanged -= OnThemeChanged;
+        base.OnClosed(e);
+    }
+
     private void Save_Click(object sender, RoutedEventArgs e)
     {
         var host = HostBox.Text.Trim();

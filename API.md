@@ -109,7 +109,11 @@ Returns both the `system` and `services` objects in one call. Ideal for dashboar
   "cpu": {
     "usage_pct": 12.4,
     "core_count": 12,
-    "history_pct": [8.1, 9.2, 12.4, ...]
+    "history_pct": [8.1, 9.2, 12.4, ...],
+    "core_histories_pct": [
+      [4.0, 5.1, 6.2, ...],
+      [10.0, 11.3, 13.5, ...]
+    ]
   },
   "memory": {
     "used_gb": 18.2,
@@ -129,7 +133,8 @@ Returns both the `system` and `services` objects in one call. Ideal for dashboar
 |---|---|---|
 | `cpu.usage_pct` | `number` | Average CPU usage across all cores (0–100) |
 | `cpu.core_count` | `integer` | Number of logical CPU cores |
-| `cpu.history_pct` | `number[]` | Last 60 samples, ~1 per second |
+| `cpu.history_pct` | `number[]` | Last 60 samples of overall CPU %, ~1 per second |
+| `cpu.core_histories_pct` | `number[][]` | Per-core rolling history — one `number[]` per logical core, each containing the last 60 samples (0–100). Always present; length equals `core_count`. |
 | `memory.used_gb` | `number` | Active + wired + compressed memory in GB |
 | `memory.total_gb` | `number` | Total physical RAM in GB |
 | `memory.usage_pct` | `number` | Percentage of RAM in use (0–100) |

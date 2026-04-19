@@ -243,12 +243,19 @@ final class APIServer: ObservableObject {
         let memHist = sys.memoryHistory.map { ($0 * 100).rounded(dp: 1) }.jsonArray()
         let gpuHist = sys.gpuHistory.map   { ($0 * 100).rounded(dp: 1) }.jsonArray()
 
+        // Per-core rolling histories: array of arrays, each 0-100 pct
+        let coreHistArrays = sys.cpuCoreHistories
+            .map { hist in hist.map { ($0 * 100).rounded(dp: 1) }.jsonArray() }
+            .joined(separator: ",")
+        let coreHist = "[\(coreHistArrays)]"
+
         return """
         {
             "cpu": {
               "usage_pct": \(cpuPct),
               "core_count": \(sys.cpuCoreCount),
-              "history_pct": \(cpuHist)
+              "history_pct": \(cpuHist),
+              "core_histories_pct": \(coreHist)
             },
             "memory": {
               "used_gb": \(memUsed),

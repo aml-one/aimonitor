@@ -14,6 +14,8 @@ class SystemMonitor: ObservableObject {
     @Published var cpuUsage: Double = 0
     @Published var cpuHistory: [Double] = Array(repeating: 0, count: 60)
     @Published var cpuCoreCount: Int = 0
+    @Published var cpuCoreUsages: [Double] = []
+    @Published var cpuCoreHistories: [[Double]] = []
 
     // MARK: - Memory
     @Published var memoryUsedGB: Double = 0
@@ -87,9 +89,18 @@ class SystemMonitor: ObservableObject {
 
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            self.cpuUsage = cpu
-            self.cpuHistory.append(cpu)
+            self.cpuUsage = cpu.avg
+            self.cpuHistory.append(cpu.avg)
             if self.cpuHistory.count > 60 { self.cpuHistory.removeFirst() }
+            self.cpuCoreUsages = cpu.cores
+            // Per-core histories
+            if self.cpuCoreHistories.count != cpu.cores.count {
+                self.cpuCoreHistories = Array(repeating: Array(repeating: 0, count: 60), count: cpu.cores.count)
+            }
+            for i in 0..<cpu.cores.count {
+                self.cpuCoreHistories[i].append(cpu.cores[i])
+                if self.cpuCoreHistories[i].count > 60 { self.cpuCoreHistories[i].removeFirst() }
+            }
 
             self.memoryUsedGB = mem
             let fraction = self.memoryTotalGB > 0 ? mem / self.memoryTotalGB : 0
@@ -109,17 +120,18 @@ class SystemMonitor: ObservableObject {
 
     // MARK: - CPU
 
-    private func readCPUUsage() -> Double {
+    private func readCPUUsage() -> (avg: Double, cores: [Double]) {
         var cpuInfo: processor_info_array_t?
         var numCpuInfo: mach_msg_type_number_t = 0
         var numCPUs: natural_t = 0
 
         guard host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO,
                                   &numCPUs, &cpuInfo, &numCpuInfo) == KERN_SUCCESS,
-              let info = cpuInfo else { return 0 }
+              let info = cpuInfo else { return (0, []) }
 
         var totalUsage = 0.0
         var validCores = 0
+        var coreUsages: [Double] = []
 
         for i in 0..<Int(numCPUs) {
             let base = Int(CPU_STATE_MAX) * i
@@ -136,8 +148,12 @@ class SystemMonitor: ObservableObject {
 
                 let total = (user - pUser) + (system - pSystem) + (nice - pNice) + (idle - pIdle)
                 if total > 0 {
-                    totalUsage += (total - (idle - pIdle)) / total
+                    let usage = (total - (idle - pIdle)) / total
+                    totalUsage += usage
                     validCores += 1
+                    coreUsages.append(min(usage, 1.0))
+                } else {
+                    coreUsages.append(0)
                 }
             }
         }
@@ -150,7 +166,7 @@ class SystemMonitor: ObservableObject {
         prevCpuInfo = info
         prevNumCpuInfo = numCpuInfo
 
-        return validCores > 0 ? totalUsage / Double(validCores) : 0
+        return (validCores > 0 ? totalUsage / Double(validCores) : 0, coreUsages)
     }
 
     // MARK: - Memory

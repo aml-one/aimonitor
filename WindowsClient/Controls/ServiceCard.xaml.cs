@@ -55,6 +55,14 @@ public partial class ServiceCard : UserControl, INotifyPropertyChanged
         DP<Visibility>(nameof(ModelsVisibility), Visibility.Collapsed);
     public static readonly DependencyProperty QueueSectionVisibilityProperty =
         DP<Visibility>(nameof(QueueSectionVisibility), Visibility.Collapsed);
+    public static readonly DependencyProperty StatsRowVisibilityProperty =
+        DP<Visibility>(nameof(StatsRowVisibility), Visibility.Visible);
+    public static readonly DependencyProperty ActionBtnsVisibilityProperty =
+        DP<Visibility>(nameof(ActionBtnsVisibility), Visibility.Visible);
+    public static readonly DependencyProperty CoreHintTextProperty =
+        DP<string>(nameof(CoreHintText), "");
+    public static readonly DependencyProperty CoreHintVisibilityProperty =
+        DP<Visibility>(nameof(CoreHintVisibility), Visibility.Collapsed);
     public static readonly DependencyProperty QueueRunningProperty =
         DP<int>(nameof(QueueRunning), 0);
     public static readonly DependencyProperty QueuePendingProperty =
@@ -91,6 +99,10 @@ public partial class ServiceCard : UserControl, INotifyPropertyChanged
     public Visibility             Btn2Visibility        { get => (Visibility)GetValue(Btn2VisibilityProperty);            set => SetValue(Btn2VisibilityProperty, value); }
     public Visibility             ModelsVisibility      { get => (Visibility)GetValue(ModelsVisibilityProperty);          set => SetValue(ModelsVisibilityProperty, value); }
     public Visibility             QueueSectionVisibility{ get => (Visibility)GetValue(QueueSectionVisibilityProperty);   set => SetValue(QueueSectionVisibilityProperty, value); }
+    public Visibility             StatsRowVisibility    { get => (Visibility)GetValue(StatsRowVisibilityProperty);        set => SetValue(StatsRowVisibilityProperty, value); }
+    public Visibility             ActionBtnsVisibility  { get => (Visibility)GetValue(ActionBtnsVisibilityProperty);      set => SetValue(ActionBtnsVisibilityProperty, value); }
+    public string                 CoreHintText          { get => (string)GetValue(CoreHintTextProperty);                   set => SetValue(CoreHintTextProperty, value); }
+    public Visibility             CoreHintVisibility    { get => (Visibility)GetValue(CoreHintVisibilityProperty);          set => SetValue(CoreHintVisibilityProperty, value); }
     public int                    QueueRunning          { get => (int)GetValue(QueueRunningProperty);                     set => SetValue(QueueRunningProperty, value); }
     public int                    QueuePending          { get => (int)GetValue(QueuePendingProperty);                     set => SetValue(QueuePendingProperty, value); }
     public bool                   IsGenerating          { get => (bool)GetValue(IsGeneratingProperty);                    set => SetValue(IsGeneratingProperty, value); }

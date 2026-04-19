@@ -1,7 +1,10 @@
 <Window x:Class="AiMonitorClient.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:ctrl="clr-namespace:AiMonitorClient.Controls"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
         Title="Ai Monitor"
         Width="860"
         MinWidth="840"
@@ -182,6 +185,11 @@
                              Margin="8,0,0,0" />
         </UniformGrid>
 
+        <!-- Load per cores panel — hidden until data arrives -->
+        <ctrl:CoreLoadPanel x:Name="CorePanel"
+                            Visibility="Collapsed"
+                            Margin="0,0,0,10" />
+
         <!-- ════════════ AI SERVICES ════════════ -->
         <StackPanel x:Name="ServicesSection"
                     Visibility="Collapsed"
@@ -255,6 +263,20 @@
                     Margin="0,0,6,0"
                     DockPanel.Dock="Right"
                     Click="ThemeBtn_Click" />
+
+            <!-- Core panel toggle — revealed once core data arrives -->
+            <CheckBox x:Name="CorePanelCheck"
+                      Content="show each core"
+                      FontFamily="Consolas"
+                      FontSize="10"
+                      IsChecked="True"
+                      Foreground="{DynamicResource TextSecondary}"
+                      DockPanel.Dock="Right"
+                      VerticalAlignment="Center"
+                      Margin="0,0,12,0"
+                      Visibility="Collapsed"
+                      d:Visibility="Visible"
+                      Click="CorePanelCheck_Click" />
         </DockPanel>
     </StackPanel>
 

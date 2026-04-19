@@ -1,7 +1,5 @@
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using AiMonitorClient.Controls;
@@ -11,11 +9,6 @@ namespace AiMonitorClient;
 
 public partial class MainWindow : Window
 {
-    // DWM caption-color API (Windows 11+; silently ignored on older OS)
-    [DllImport("dwmapi.dll", PreserveSig = true)]
-    private static extern int DwmSetWindowAttribute(nint hwnd, uint attr, ref int attrValue, uint attrSize);
-    private const uint DWMWA_CAPTION_COLOR = 35;
-
     private ApiClient        _api;
     private DispatcherTimer  _timer;
     private CancellationTokenSource _cts = new();
@@ -23,6 +16,9 @@ public partial class MainWindow : Window
     private bool             _polling;          // guard: skip tick if previous poll still running
     private int              _failStreak;       // consecutive failures before showing offline
     private const int        FailThreshold = 3; // tolerate up to 3 missed polls before marking offline
+    private bool             _showCorePanel = true;
+    private bool             _coreCountSeen;  // checkbox revealed once CoreCount > 0
+    private bool             _hasCoreData;    // actual per-core histories received
 
     // ── CPU/Mem/GPU rolling history kept client-side as fallback ──────────
     // (the Mac sends history[], but we store it here too for display)
@@ -62,20 +58,7 @@ public partial class MainWindow : Window
         ApplyTitleBarColor();
     }
 
-    internal void ApplyTitleBarColor()
-    {
-        try
-        {
-            // WindowBg in dark mode = #0D0D17, light = #F2F2F7 — read from resources
-            var bg = (SolidColorBrush)Application.Current.Resources["WindowBg"];
-            var c  = bg.Color;
-            // DWMWA_CAPTION_COLOR expects 0x00BBGGRR
-            int rgb = c.R | (c.G << 8) | (c.B << 16);
-            var hwnd = new WindowInteropHelper(this).Handle;
-            DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, ref rgb, 4);
-        }
-        catch { }
-    }
+    internal void ApplyTitleBarColor() => App.ApplyTitleBarColor(this);
 
     // ── Polling ───────────────────────────────────────────────────────────
 
@@ -115,6 +98,22 @@ public partial class MainWindow : Window
         }
     }
 
+    // ── Helpers ───────────────────────────────────────────────────────────
+
+    // Show 1 decimal unless it would be .0 (ps reports per-core %, can exceed 100)
+    private static string CpuStr(double pct)
+    {
+        return pct % 1 == 0 ? $"{pct:F0}%" : $"{pct:F1}%";
+    }
+
+    private static (string text, Visibility vis) CoreHint(double pct)
+    {
+        var cores = (int)(pct / 100);
+        if (cores <= 0) return ("", Visibility.Collapsed);
+        var txt = cores == 1 ? "1 core maxed out" : $"{cores} cores maxed out";
+        return (txt, Visibility.Visible);
+    }
+
     // ── System section ────────────────────────────────────────────────────
 
     private void ApplySystem(SystemData? sys)
@@ -144,6 +143,20 @@ public partial class MainWindow : Window
         }
         GpuCard.HistoryValues = sys.Gpu.HistoryPct;
 
+        // Per-core load panel
+        // Show the checkbox once we know the core count; show the panel only when real data arrives.
+        if (sys.Cpu.CoreCount > 0 && !_coreCountSeen)
+        {
+            _coreCountSeen = true;
+            CorePanelCheck.Visibility = Visibility.Visible;
+        }
+        if (sys.Cpu.CoreHistoriesPct is { Length: > 0 } coreHist)
+        {
+            _hasCoreData = true;
+            CorePanel.CoreHistories = coreHist;
+            CorePanel.Visibility = _showCorePanel ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         // Summary capsule
         SumCpuVal.Text = $"{sys.Cpu.UsagePct:F0}%";
         SumMemVal.Text = $"{sys.Memory.UsagePct:F0}%";
@@ -169,11 +182,16 @@ public partial class MainWindow : Window
         {
             var o = svc.OllamaData;
             OllamaCard.IsOnline      = o.Online;
-            OllamaCard.CpuText       = o.CpuPct < 0.35 ? "idle" : $"{o.CpuPct:F0}%";
+            OllamaCard.CpuText       = o.CpuPct < 0.35 ? "idle" : CpuStr(o.CpuPct);
             OllamaCard.MemText       = o.MemGb < 1.0 ? $"{o.MemGb * 1024:F0} MB" : o.MemGb % 1 == 0 ? $"{o.MemGb:F0} GB" : $"{o.MemGb:F2} GB";
             OllamaCard.ExtraText     = $"{o.Models.Length}";
             OllamaCard.HistoryValues = o.CpuHistoryPct;
-            OllamaCard.ModelsVisibility = o.Online ? Visibility.Visible : Visibility.Hidden;
+            OllamaCard.StatsRowVisibility   = o.Online ? Visibility.Visible : Visibility.Hidden;
+            OllamaCard.ModelsVisibility     = o.Online ? Visibility.Visible : Visibility.Hidden;
+            OllamaCard.Btn1Label            = o.Online ? "↺  Restart" : "▶  Start";
+            var (oHint, oHintVis) = CoreHint(o.CpuPct);
+            OllamaCard.CoreHintText         = oHint;
+            OllamaCard.CoreHintVisibility   = oHintVis;
             OllamaCard.ModelNames    = o.Online
                 ? (IReadOnlyList<string>)o.Models.Select(m => m.Name).ToArray()
                 : Array.Empty<string>();
@@ -183,14 +201,19 @@ public partial class MainWindow : Window
         {
             var c = svc.ComfyData;
             ComfyCard.IsOnline              = c.Online;
-            ComfyCard.CpuText               = c.CpuPct < 0.35 ? "idle" : $"{c.CpuPct:F0}%";
+            ComfyCard.CpuText               = c.CpuPct < 0.35 ? "idle" : CpuStr(c.CpuPct);
             ComfyCard.MemText               = c.MemGb < 1.0 ? $"{c.MemGb * 1024:F0} MB" : c.MemGb % 1 == 0 ? $"{c.MemGb:F0} GB" : $"{c.MemGb:F2} GB";
             ComfyCard.ExtraText             = $"{c.QueueRunning} / {c.QueuePending}";
             ComfyCard.QueueRunning          = c.QueueRunning;
             ComfyCard.QueuePending          = c.QueuePending;
             ComfyCard.IsGenerating          = c.IsGenerating;
             ComfyCard.GenerationProgress    = c.GenerationProgress;
+            ComfyCard.StatsRowVisibility    = c.Online ? Visibility.Visible : Visibility.Hidden;
             ComfyCard.QueueSectionVisibility= c.Online ? Visibility.Visible : Visibility.Hidden;
+            ComfyCard.ActionBtnsVisibility  = c.Online ? Visibility.Visible : Visibility.Hidden;
+            var (cHint, cHintVis) = CoreHint(c.CpuPct);
+            ComfyCard.CoreHintText          = cHint;
+            ComfyCard.CoreHintVisibility    = cHintVis;
             ComfyCard.HistoryValues         = c.CpuHistoryPct;
         }
     }
@@ -210,11 +233,12 @@ public partial class MainWindow : Window
         ConnStatusText.Text = connected ? $"connected · {lbl}" : "unreachable";
 
         // Grayscale all graphs while disconnected
-        CpuCard.Grayscale   = !connected;
-        MemCard.Grayscale   = !connected;
-        GpuCard.Grayscale   = !connected;
+        CpuCard.Grayscale    = !connected;
+        MemCard.Grayscale    = !connected;
+        GpuCard.Grayscale    = !connected;
         OllamaCard.Grayscale = !connected;
         ComfyCard.Grayscale  = !connected;
+        CorePanel.Grayscale  = !connected;
     }
 
     private void UpdateConnectionLabel()
@@ -260,6 +284,14 @@ public partial class MainWindow : Window
         App.ApplyTheme(!App.Settings.DarkMode);
         App.Settings.Save();
         ApplyTitleBarColor();
+    }
+
+    private void CorePanelCheck_Click(object sender, RoutedEventArgs e)
+    {
+        _showCorePanel = CorePanelCheck.IsChecked == true;
+        // Only show the panel if actual core history data has arrived from the API.
+        // If data hasn't arrived yet, ApplySystem will show it as soon as it does.
+        CorePanel.Visibility = (_showCorePanel && _hasCoreData) ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // ── Icon ──────────────────────────────────────────────────────────────
